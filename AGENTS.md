@@ -40,6 +40,8 @@ pnpm test        # vitest run
 
 All three must pass. If `pnpm lint` complains about formatting, run `pnpm format` and re-stage. Do not commit if any of these fail.
 
+Before writing a commit message, load the `commit-conventions` skill — it encodes this repo's imperative subject / optional `Area:` prefix / ~72-char body style so you don't need to inspect git history to match it.
+
 If you discover a new meaningful command (e.g. a specific vitest invocation, a biome autofix flag), add it to this file.
 
 ## Tech stack (locked decisions — do not change without user approval)
