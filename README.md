@@ -86,7 +86,7 @@ All settings have sensible defaults — the server runs correctly with zero conf
 
 ## Protocol
 
-The full message contract — what the server sends, what it accepts, and all error cases — is documented in [`planning-poker-api-contract.md`](./planning-poker-api-contract.md). Read that if you're building a client or want to understand the wire format precisely.
+The full message contract — what the server sends, what it accepts, and all error cases — is documented in [`planning-poker-api-contract.md`](./docs/planning-poker-api-contract.md). Read that if you're building a client or want to understand the wire format precisely.
 
 ## Deployment
 

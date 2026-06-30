@@ -7,8 +7,8 @@ This file is the onboarding doc for coding agents (opencode, Claude, Copilot Cha
 WebSocket backend for Planning Poker. Single Node.js process, all state in memory. TypeScript (strict), Hono framework, Zod for runtime validation, Pino for logs, Vitest for tests, Biome for lint/format. Deploys to Render free tier on push to `main`.
 
 **Before writing any code, read both:**
-1. [`planning-poker-api-contract.md`](./planning-poker-api-contract.md) — the wire protocol (what the server sends and accepts). This is the contract the frontend codes against; do not break it without explicit user approval.
-2. [`planning-poker-backend-design-decisions.md`](./planning-poker-backend-design-decisions.md) — every design choice made during the interview session (Q1–Q31), grouped by area. Refer back to this when a decision's reasoning isn't obvious.
+1. [`planning-poker-api-contract.md`](./docs/planning-poker-api-contract.md) — the wire protocol (what the server sends and accepts). This is the contract the frontend codes against; do not break it without explicit user approval.
+2. [`planning-poker-backend-design-decisions.md`](./docs/planning-poker-backend-design-decisions.md) — every design choice made during the interview session (Q1–Q31), grouped by area. Refer back to this when a decision's reasoning isn't obvious.
 
 ## Project structure
 
@@ -22,8 +22,10 @@ src/
   errors.ts       # error message string constants (single spot)
 test/
   *.test.ts       # unit tests (no integration tests for v1)
-planning-poker-api-contract.md
-planning-poker-backend-design-decisions.md
+docs/
+  planning-poker-api-contract.md  # wire protocol (server↔client messages, error table)
+  planning-poker-backend-design-decisions.md  # design interview Q&A (Q1–Q31)
+  TASKS.md  # build progress checklist
 README.md
 AGENTS.md         # this file — keep it current
 ```
@@ -46,7 +48,7 @@ If you discover a new meaningful command (e.g. a specific vitest invocation, a b
 |---|---|---|
 | Runtime | Node.js 20 LTS | Boring, stable, Render-compatible |
 | Framework | Hono on `@hono/node-server` + `ws` | Lightweight, runtime-agnostic, WS via `upgradeWebSocket` |
-| Language | TypeScript (strict), `module: "NodeNext"` | See `planning-poker-backend-design-decisions.md` §4 for the full tsconfig options |
+| Language | TypeScript (strict), `module: "NodeNext"` | See `docs/planning-poker-backend-design-decisions.md` §4 for the full tsconfig options |
 | Validation | Zod | Single source of truth for runtime parsers and static types via `z.infer` |
 | Logging | Pino | Structured JSON, child logger per room |
 | Tests | Vitest | ESM-native, fake timers for time-dependent units |
@@ -58,7 +60,7 @@ If you discover a new meaningful command (e.g. a specific vitest invocation, a b
 
 These are the load-bearing invariants. Violating them is a bug, even if tests pass.
 
-1. **`welcome` → `state` ordering on join.** Every new connection receives `welcome{userId}` before any `state` message. Then `state` is broadcast to *all* clients in the room, including the joiner. See `planning-poker-backend-design-decisions.md` D6.3.
+1. **`welcome` → `state` ordering on join.** Every new connection receives `welcome{userId}` before any `state` message. Then `state` is broadcast to *all* clients in the room, including the joiner. See `docs/planning-poker-backend-design-decisions.md` D6.3.
 
 2. **`state` is always derived, never stored.** The room holds the source of truth (a `Map<userId, User>` with `{id, name, seq, vote}` fields, plus `hostId` and `revealed`). Every `state` broadcast is built fresh by `buildStateSnapshot(room)`. Do not cache or patch a `state` object on the room — see D8.1 in the decisions doc.
 
@@ -119,7 +121,7 @@ Unit tests only for v1. Target the pure functions in `room.ts` and `validation.t
 - `validateRoomId`, `validateName`, `parseClientMessage` (Zod-backed)
 - Voting state-machine rules — `vote` rejected when revealed, `reset` clears, idempotent `reveal`/`reset` rejected
 
-Use `vi.useFakeTimers()` for any time-dependent unit (e.g. the rate-limit window). Skip integration tests (real WS round-trips); they're acknowledged as a gap and may be added later. See `planning-poker-backend-design-decisions.md` §13.
+Use `vi.useFakeTimers()` for any time-dependent unit (e.g. the rate-limit window). Skip integration tests (real WS round-trips); they're acknowledged as a gap and may be added later. See `docs/planning-poker-backend-design-decisions.md` §13.
 
 When adding a new behavior, add a unit test for it. Do not add an integration test without user approval — the deliberate scope is unit-only.
 
@@ -148,7 +150,7 @@ Two `try/catch` wrappers in `src/index.ts`:
 - Around `onMessage` body: catch → log `error` with `{ roomId, userId }`, send `{"type":"error","message":"Internal error"}` to the offender, keep socket, keep room.
 - Around `onClose` body: catch → log `error`, close the offender socket hard. If cleanup throws, room integrity is suspect; the next `onClose` (if any) tries again. Worst case: a corrupted room hangs until empty and is discarded.
 
-See `planning-poker-backend-design-decisions.md` D11.4.
+See `docs/planning-poker-backend-design-decisions.md` D11.4.
 
 ## Concurrency model
 
@@ -156,11 +158,11 @@ Single Node event loop. Each message handler runs to completion before the next.
 
 ## Configuration loading
 
-`src/config.ts` reads env vars at boot, parses integers, validates bounds, and throws on bad values (process exits non-zero, Render marks deploy failed). Defaults are picked so the service runs with zero configuration. The full table is in `planning-poker-backend-design-decisions.md` §5 and in the README. Do not read `process.env` directly elsewhere — import the validated config object from `src/config.ts`.
+`src/config.ts` reads env vars at boot, parses integers, validates bounds, and throws on bad values (process exits non-zero, Render marks deploy failed). Defaults are picked so the service runs with zero configuration. The full table is in `docs/planning-poker-backend-design-decisions.md` §5 and in the README. Do not read `process.env` directly elsewhere — import the validated config object from `src/config.ts`.
 
 ## Deployment
 
-Render free tier, connected GitHub repo, auto-deploy on push to `main`. Render runs `pnpm install && pnpm build && pnpm start`. No Dockerfile. No GitHub Actions YAML. If you're asked to change deployment, ask the user first — the choice was deliberate (vendor lock-in avoidance, see `planning-poker-backend-design-decisions.md` §1 D1.5).
+Render free tier, connected GitHub repo, auto-deploy on push to `main`. Render runs `pnpm install && pnpm build && pnpm start`. No Dockerfile. No GitHub Actions YAML. If you're asked to change deployment, ask the user first — the choice was deliberate (vendor lock-in avoidance, see `docs/planning-poker-backend-design-decisions.md` §1 D1.5).
 
 Render spins down after 15 min idle; `SIGTERM` triggers graceful shutdown (close all sockets with 1001/"server_shutdown", wait up to `SHUTDOWN_GRACE_MS`, exit). See D11.2.
 
@@ -168,7 +170,7 @@ Render spins down after 15 min idle; `SIGTERM` triggers graceful shutdown (close
 
 **Update AGENTS.md whenever:**
 
-- A new file or directory is added to `src/` or `test/` — add it to the project structure list and explain its role.
+- A new file or directory is added to `src/`, `test/`, or `docs/` — add it to the project structure list and explain its role.
 - A new script is added to `package.json` — add it to the commands list with what it does.
 - A new invariant is introduced or an existing one is removed/relaxed — update the "Invariants you must not break" section.
 - A new error message string is added — add it to the error vocabulary list.
