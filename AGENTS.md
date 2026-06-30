@@ -179,8 +179,4 @@ Render spins down after 15 min idle; `SIGTERM` triggers graceful shutdown (close
 
 **Lessons learned (append below this line as they're discovered):**
 
-<!-- Example format:
-- **YYYY-MM-DD — Short title**: One-paragraph description of the lesson, including the symptom, root cause, and fix. Include file:line references where relevant.
--->
-
-(None yet — add the first one when you hit something this file should have warned you about.)
+- **2026-06-30 — pnpm v11 needs `allowBuilds` for native postinstalls**: With pnpm v11, native-binary deps with `postinstall` scripts (`@biomejs/biome`, `esbuild`) are NOT run by default and `pnpm install` exits non-zero with `[ERR_PNPM_IGNORED_BUILDS]`, which also breaks any `pnpm <script>` (each script re-runs `pnpm install` via `verifyDepsBeforeRun`). `pnpm approve-builds` is interactive and unusable in a non-TTY agent shell. Fix: add `pnpm-workspace.yaml` next to `package.json` with an `allowBuilds:` map (e.g. `{"@biomejs/biome": true, "esbuild": true}`), then `rm -rf node_modules pnpm-lock.yaml && pnpm install` to re-resolve and actually run the builds. The `pnpm.onlyBuiltDependencies` field in `package.json` is no longer read by pnpm v11 (warned + ignored) — use `pnpm-workspace.yaml`. Without this, `pnpm build`/`pnpm start` on Render would also fail the deploy on a fresh machine.
