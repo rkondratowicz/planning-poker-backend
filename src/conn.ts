@@ -6,6 +6,7 @@ import type { ClientToServer, ServerToClient } from "./messages.js";
 import { parseClientMessage } from "./messages.js";
 import {
   buildStateSnapshot,
+  type CleanupResult,
   castVote,
   createRoom,
   getRoom,
@@ -194,18 +195,22 @@ export function processMessage(conn: Connection, raw: string, logger: Logger): v
   }
 }
 
-export function closeConnection(conn: Connection, logger: Logger): void {
-  if (conn.closed) return;
+export function closeConnection(conn: Connection, logger: Logger): CleanupResult {
+  if (conn.closed) {
+    return { removed: false, discarded: false, promoted: null };
+  }
   conn.closed = true;
 
   const removed = unregisterSender(conn.roomId, conn.userId);
-  if (!removed) return;
+  if (!removed) {
+    return { removed: false, discarded: false, promoted: null };
+  }
 
   const result = removeUserFromRoom(conn.roomId, conn.userId);
   logger.info({ roomId: conn.roomId, userId: conn.userId }, "user left");
   if (result.discarded) {
     logger.info({ roomId: conn.roomId }, "room discarded");
-    return;
+    return result;
   }
   if (result.promoted !== null) {
     logger.info({ roomId: conn.roomId, hostId: result.promoted }, "host promoted");
@@ -214,4 +219,9 @@ export function closeConnection(conn: Connection, logger: Logger): void {
   if (room !== undefined) {
     broadcastState(room);
   }
+  return result;
+}
+
+export function sendToClient(conn: Connection, msg: ServerToClient): void {
+  send(conn, msg);
 }

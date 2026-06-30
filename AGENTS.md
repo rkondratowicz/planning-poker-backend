@@ -17,11 +17,13 @@ src/
   index.ts        # serve(), route registration, wire-up, SIGTERM handler
   room.ts         # Room type + in-memory Map + mutate helpers + buildStateSnapshot
   conn.ts         # per-connection state, validation, message routing for one client
+  validation.ts   # pure validateRoomId / validateName helpers used by the /ws upgrade
   messages.ts     # Zod schemas + z.infer'd types for ServerToClient / ClientToServer
   config.ts       # env-bound config object, validated at boot
   errors.ts       # error message string constants (single spot)
 test/
   *.test.ts       # unit tests (no integration tests for v1)
+vitest.config.ts  # pins include: test/** and excludes dist/ (prevents build double-run)
 docs/
   planning-poker-api-contract.md  # wire protocol (server↔client messages, error table)
   planning-poker-backend-design-decisions.md  # design interview Q&A (Q1–Q31)
@@ -36,9 +38,12 @@ AGENTS.md         # this file — keep it current
 pnpm typecheck   # tsc --noEmit, strict mode
 pnpm lint        # biome check src test
 pnpm test        # vitest run
+pnpm build       # tsc → dist/ (verify the build compiles; run before committing wire-up Changes)
 ```
 
 All three must pass. If `pnpm lint` complains about formatting, run `pnpm format` and re-stage. Do not commit if any of these fail.
+
+`vitest.config.ts` pins `include: ["test/**/*.test.ts"]` and excludes `dist/` — without it, `pnpm build` emits `dist/test/*.js` and `pnpm test` double-runs them (212 tests instead of 106). `dist/` is gitignored; do not commit it.
 
 Before writing a commit message, load the `commit-conventions` skill — it encodes this repo's imperative subject / optional `Area:` prefix / ~72-char body style so you don't need to inspect git history to match it.
 
