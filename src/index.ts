@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { exit } from "node:process";
 import {
   serve,
@@ -23,12 +24,12 @@ import {
 import { errors } from "./errors.js";
 import { validateName, validateRoomId } from "./validation.js";
 
-const packageJson = JSON.parse(
-  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
-) as { version: string };
-
+const repoRoot = process.cwd();
+const packageJson = JSON.parse(readFileSync(path.resolve(repoRoot, "package.json"), "utf8")) as {
+  version: string;
+};
 const contractMarkdown = readFileSync(
-  new URL("../docs/planning-poker-api-contract.md", import.meta.url),
+  path.resolve(repoRoot, "docs", "planning-poker-api-contract.md"),
   "utf8",
 );
 
