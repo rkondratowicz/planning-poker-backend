@@ -68,16 +68,11 @@ export function buildStateSnapshot(room: Room): StateMessage {
     hasVoted: u.vote !== null,
   }));
 
-  let votes: null | Record<string, string> = null;
-  if (room.revealed) {
-    const map: Record<string, string> = {};
-    for (const u of sorted) {
-      if (u.vote !== null) {
-        map[u.id] = u.vote;
-      }
-    }
-    votes = map;
-  }
+  const votes = room.revealed
+    ? Object.fromEntries(
+        sorted.filter((u) => u.vote !== null).map((u) => [u.id, u.vote] as [string, string]),
+      )
+    : null;
 
   return {
     type: "state",
@@ -89,15 +84,9 @@ export function buildStateSnapshot(room: Room): StateMessage {
 }
 
 export function promoteNextHost(room: Room): string | null {
-  let smallest: User | null = null;
-  for (const u of room.users.values()) {
-    if (smallest === null || u.seq < smallest.seq) {
-      smallest = u;
-    }
-  }
-  if (smallest === null) {
-    return null;
-  }
+  const users = [...room.users.values()];
+  if (users.length === 0) return null;
+  const smallest = users.reduce((a, b) => (a.seq < b.seq ? a : b));
   room.hostId = smallest.id;
   return smallest.id;
 }
@@ -135,12 +124,7 @@ export function removeUserFromRoom(roomId: string, userId: string): CleanupResul
 }
 
 function hasAnyVotes(room: Room): boolean {
-  for (const u of room.users.values()) {
-    if (u.vote !== null) {
-      return true;
-    }
-  }
-  return false;
+  return [...room.users.values()].some((u) => u.vote !== null);
 }
 
 export function castVote(room: Room, userId: string, value: string): void {
@@ -171,9 +155,9 @@ export function resetVotes(room: Room, userId: string): void {
   if (!room.revealed && !hasAnyVotes(room)) {
     throw new RoomError(errors.alreadyReset);
   }
-  for (const u of room.users.values()) {
+  room.users.forEach((u) => {
     u.vote = null;
-  }
+  });
   room.revealed = false;
 }
 

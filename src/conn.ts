@@ -87,13 +87,13 @@ function broadcastState(room: Room): void {
   const snap = buildStateSnapshot(room);
   const conns = connections.get(room.roomId);
   if (conns === undefined) return;
-  for (const sender of conns.values()) {
+  conns.forEach((sender) => {
     try {
       sender(snap);
     } catch {
       // D11.3: per-socket send failures are swallowed; onClose is authoritative.
     }
-  }
+  });
 }
 
 function send(conn: Connection, msg: ServerToClient): void {

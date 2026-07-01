@@ -122,6 +122,7 @@ When adding a new behavior, add a unit test for it. Do not add an integration te
 - No comments unless explicitly requested by the user.
 - No emoji in code or commit messages.
 - Handlers structured as **validate → mutate → broadcast**. A throw in validate is recoverable (keep socket, send `Internal error`); a throw in mutate/broadcast is a bug but should not crash the process (see the `try/catch` wrappers in §"Error boundaries").
+- **Prefer declarative functional iteration over `for` loops.** Use `.map()`, `.filter()`, `.reduce()`, `.some()`, `.every()`, `.find()`, `.forEach()`, and `Object.fromEntries()` instead of `for`/`for...of` loops. These compose into single expressions with no mutable accumulator variables. Reserve `for` loops for the cases they're genuinely better at: when you need `break`, `continue`, or an early `return` mid-iteration (callbacks can't short-circuit). Note: spreading a `Map`'s `.values()` into an array (`[...map.values()]`) is the idiom for applying array methods to `Map` contents.
 
 ## Error boundaries & deployment lifecycle
 
