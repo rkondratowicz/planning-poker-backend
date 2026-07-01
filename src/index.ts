@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { exit } from "node:process";
 import {
   serve,
@@ -22,6 +23,15 @@ import {
 import { errors } from "./errors.js";
 import { validateName, validateRoomId } from "./validation.js";
 
+const packageJson = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+) as { version: string };
+
+const contractMarkdown = readFileSync(
+  new URL("../docs/planning-poker-api-contract.md", import.meta.url),
+  "utf8",
+);
+
 export type ServerDeps = {
   config: Config;
   logger: Logger;
@@ -33,6 +43,24 @@ export function createApp(deps: ServerDeps): Hono {
   const app = new Hono();
 
   app.get("/health", (c) => c.text("ok"));
+
+  app.get("/", (c) =>
+    c.json({
+      name: "planning-poker-backend",
+      version: packageJson.version,
+      endpoints: {
+        health: "/health",
+        ws: "/ws",
+        contract: "/contract",
+      },
+    }),
+  );
+
+  app.get("/contract", (c) =>
+    c.text(contractMarkdown, 200, {
+      "Content-Type": "text/plain; charset=utf-8",
+    }),
+  );
 
   app.get("/ws", (c) => {
     if (deps.shuttingDown()) {
