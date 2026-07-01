@@ -263,7 +263,7 @@ describe("processMessage", () => {
       logger: silentLogger,
     });
     ws.sent.length = 0;
-    processMessage(conn, JSON.stringify({ type: "vote", value: "5" }), silentLogger);
+    processMessage(conn, JSON.stringify({ type: "vote", value: "5" }));
     expect(conn.room.users.get(conn.userId)?.vote).toBe("5");
     // the last message broadcast to the joiner is state
     const last = lastSent(ws);
@@ -284,7 +284,7 @@ describe("processMessage", () => {
       logger: silentLogger,
     });
     ws.sent.length = 0;
-    processMessage(conn, "not json", silentLogger);
+    processMessage(conn, "not json");
     const last = lastParsed(ws);
     expect(last).toEqual({ type: "error", message: "Malformed message" });
   });
@@ -302,7 +302,7 @@ describe("processMessage", () => {
     });
     conn.room.revealed = true;
     ws.sent.length = 0;
-    processMessage(conn, JSON.stringify({ type: "vote", value: "5" }), silentLogger);
+    processMessage(conn, JSON.stringify({ type: "vote", value: "5" }));
     const last = lastParsed(ws);
     expect(last).toEqual({ type: "error", message: "Voting is locked until reset" });
   });
@@ -322,7 +322,7 @@ describe("processMessage", () => {
     vi.useFakeTimers();
     vi.setSystemTime(0);
     for (let i = 0; i < 5; i++) {
-      processMessage(conn, JSON.stringify({ type: "vote", value: "5" }), silentLogger);
+      processMessage(conn, JSON.stringify({ type: "vote", value: "5" }));
     }
     vi.useRealTimers();
 
@@ -349,8 +349,8 @@ describe("closeConnection", () => {
       logger: silentLogger,
     });
     const userId = conn.userId;
-    closeConnection(conn, silentLogger);
-    closeConnection(conn, silentLogger);
+    closeConnection(conn);
+    closeConnection(conn);
     expect(conn.closed).toBe(true);
     // room discarded when empty
     expect(getRoom("room-c")).toBeUndefined();
@@ -378,7 +378,7 @@ describe("closeConnection", () => {
     });
     ws1.sent.length = 0;
     ws2.sent.length = 0;
-    closeConnection(host, silentLogger);
+    closeConnection(host);
 
     expect(getRoom("room-h")?.hostId).toBe(bob.userId);
     const bobState = lastSent(ws2);
@@ -399,7 +399,7 @@ describe("closeConnection", () => {
       config: makeConfig(),
       logger: silentLogger,
     });
-    closeConnection(conn, silentLogger);
+    closeConnection(conn);
     expect(getRoom("room-d")).toBeUndefined();
   });
 });

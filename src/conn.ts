@@ -29,6 +29,8 @@ export type Connection = {
   room: Room;
   rateLimiter: RateLimiter;
   closed: boolean;
+  maxVoteLength: number;
+  logger: Logger;
 };
 
 export type RateLimiter = {
@@ -36,9 +38,11 @@ export type RateLimiter = {
 };
 
 const connections = new Map<string, Map<string, Sender>>();
+const roomLoggers = new Map<string, Logger>();
 
 export function _testResetConnections(): void {
   connections.clear();
+  roomLoggers.clear();
 }
 
 export function createRateLimiter(windowMs: number, burst: number): RateLimiter {
@@ -135,11 +139,18 @@ export function openConnection(opts: {
   const userId = `user-${randomUUID()}`;
   const existing = getRoom(roomId);
   let room: Room;
+  let roomLogger = roomLoggers.get(roomId);
   if (existing === undefined) {
     room = createRoom(roomId, userId, name);
-    logger.info({ roomId, userId }, "room created");
+    roomLogger = logger.child({ roomId });
+    roomLoggers.set(roomId, roomLogger);
+    roomLogger.info({ userId }, "room created");
   } else {
     room = existing;
+    if (roomLogger === undefined) {
+      roomLogger = logger.child({ roomId });
+      roomLoggers.set(roomId, roomLogger);
+    }
     joinRoom(room, userId, name);
   }
 
@@ -149,6 +160,8 @@ export function openConnection(opts: {
     room,
     closed: false,
     rateLimiter: createRateLimiter(config.messageRateWindowMs, config.messageRateBurst),
+    maxVoteLength: config.maxVoteLength,
+    logger: roomLogger,
   };
   registerSender(roomId, userId, (msg) => {
     ws.send(JSON.stringify(msg));
@@ -156,24 +169,24 @@ export function openConnection(opts: {
 
   // D6.3: welcome to the joiner first, then state broadcast to all (incl. joiner).
   send(conn, { type: "welcome", userId });
-  logger.info({ roomId, userId, name }, "user joined");
+  roomLogger.info({ userId, name }, "user joined");
   broadcastState(room);
   return conn;
 }
 
-export function processMessage(conn: Connection, raw: string, logger: Logger): void {
+export function processMessage(conn: Connection, raw: string): void {
   if (conn.closed) return;
   if (!conn.rateLimiter.allow(Date.now())) {
     send(conn, { type: "error", message: errors.rateLimitExceeded });
-    logger.warn({ roomId: conn.roomId, userId: conn.userId }, "rate limit exceeded");
+    conn.logger.warn({ userId: conn.userId }, "rate limit exceeded");
     return;
   }
 
-  const parsed = parseClientMessage(raw);
+  const parsed = parseClientMessage(raw, conn.maxVoteLength);
   if (!parsed.ok) {
     send(conn, { type: "error", message: parsed.error });
-    logger.warn(
-      { roomId: conn.roomId, userId: conn.userId, error: parsed.error },
+    conn.logger.warn(
+      { userId: conn.userId, error: parsed.error, detail: parsed.detail },
       "inbound message rejected",
     );
     return;
@@ -188,14 +201,14 @@ export function processMessage(conn: Connection, raw: string, logger: Logger): v
   } catch (e) {
     if (e instanceof RoomError) {
       send(conn, { type: "error", message: e.code });
-      logger.warn({ roomId: conn.roomId, userId: conn.userId, error: e.code }, "rule violation");
+      conn.logger.warn({ userId: conn.userId, error: e.code }, "rule violation");
       return;
     }
     throw e;
   }
 }
 
-export function closeConnection(conn: Connection, logger: Logger): CleanupResult {
+export function closeConnection(conn: Connection): CleanupResult {
   if (conn.closed) {
     return { removed: false, discarded: false, promoted: null };
   }
@@ -207,13 +220,14 @@ export function closeConnection(conn: Connection, logger: Logger): CleanupResult
   }
 
   const result = removeUserFromRoom(conn.roomId, conn.userId);
-  logger.info({ roomId: conn.roomId, userId: conn.userId }, "user left");
+  conn.logger.info({ userId: conn.userId }, "user left");
   if (result.discarded) {
-    logger.info({ roomId: conn.roomId }, "room discarded");
+    conn.logger.info("room discarded");
+    roomLoggers.delete(conn.roomId);
     return result;
   }
   if (result.promoted !== null) {
-    logger.info({ roomId: conn.roomId, hostId: result.promoted }, "host promoted");
+    conn.logger.info({ hostId: result.promoted }, "host promoted");
   }
   const room = getRoom(conn.roomId);
   if (room !== undefined) {

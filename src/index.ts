@@ -88,7 +88,7 @@ export function createApp(deps: ServerDeps): Hono {
         }
         const data = typeof evt.data === "string" ? evt.data : String(evt.data);
         try {
-          processMessage(conn, data, deps.logger);
+          processMessage(conn, data);
         } catch (e) {
           deps.logger.error(
             { roomId: conn.roomId, userId: conn.userId, err: e },
@@ -107,7 +107,7 @@ export function createApp(deps: ServerDeps): Hono {
         connsByWs.delete(raw);
         try {
           if (conn !== undefined) {
-            closeConnection(conn, deps.logger);
+            closeConnection(conn);
           }
         } catch (e) {
           deps.logger.error(

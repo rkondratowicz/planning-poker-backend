@@ -15,13 +15,7 @@ const resetSchema = z.object({
   type: z.literal("reset"),
 });
 
-const schemasByType = {
-  vote: voteSchema,
-  reveal: revealSchema,
-  reset: resetSchema,
-} as const;
-
-export type ClientType = keyof typeof schemasByType;
+export type ClientType = "vote" | "reveal" | "reset";
 
 export type VoteMessage = z.infer<typeof voteSchema>;
 export type RevealMessage = z.infer<typeof revealSchema>;
@@ -56,11 +50,18 @@ export type ServerToClient = WelcomeMessage | StateMessage | ServerError;
 
 export type ParseResult =
   | { ok: true; message: ClientToServer }
-  | { ok: false; error: ErrorMessage };
+  | { ok: false; error: ErrorMessage; detail?: unknown };
 
-const knownTypes = new Set<string>(Object.keys(schemasByType));
+const knownTypes = new Set<string>(["vote", "reveal", "reset"]);
 
-export function parseClientMessage(raw: string): ParseResult {
+function schemaFor(type: ClientType, maxVoteLength: number) {
+  if (type === "vote") {
+    return z.object({ type: z.literal("vote"), value: z.string().min(1).max(maxVoteLength) });
+  }
+  return type === "reveal" ? revealSchema : resetSchema;
+}
+
+export function parseClientMessage(raw: string, maxVoteLength = 64): ParseResult {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -77,10 +78,10 @@ export function parseClientMessage(raw: string): ParseResult {
     return { ok: false, error: errors.unknownMessageType };
   }
 
-  const schema = schemasByType[type as ClientType];
-  const result = schema.safeParse(parsed);
+  const typed = type as ClientType;
+  const result = schemaFor(typed, maxVoteLength).safeParse(parsed);
   if (!result.success) {
-    return { ok: false, error: errors.invalidMessage(type) };
+    return { ok: false, error: errors.invalidMessage(typed), detail: result.error.issues };
   }
   return { ok: true, message: result.data };
 }

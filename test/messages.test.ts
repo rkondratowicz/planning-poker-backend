@@ -27,6 +27,20 @@ describe("parseClientMessage", () => {
       expect(result).toEqual({ ok: true, message: { type: "vote", value } });
     });
 
+    it("honors a custom maxVoteLength bound", () => {
+      const ten = "x".repeat(10);
+      expect(parseClientMessage(JSON.stringify({ type: "vote", value: ten }), 10)).toEqual({
+        ok: true,
+        message: { type: "vote", value: ten },
+      });
+      const result = parseClientMessage(
+        JSON.stringify({ type: "vote", value: "x".repeat(11) }),
+        10,
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toBe("Invalid vote message");
+    });
+
     it("accepts arbitrary unicode value strings (any deck)", () => {
       const result = parseClientMessage(JSON.stringify({ type: "vote", value: "☕" }));
       expect(result).toEqual({ ok: true, message: { type: "vote", value: "☕" } });
@@ -149,43 +163,54 @@ describe("parseClientMessage", () => {
 
   describe("Invalid <type> message — known type, bad shape", () => {
     it("normalizes a vote missing required `value`", () => {
-      expect(parseClientMessage(JSON.stringify({ type: "vote" }))).toEqual({
-        ok: false,
-        error: "Invalid vote message",
-      });
+      const result = parseClientMessage(JSON.stringify({ type: "vote" }));
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toBe("Invalid vote message");
+        expect(result.detail).toBeInstanceOf(Array);
+      }
     });
 
     it("normalizes a vote with a non-string value (number)", () => {
-      expect(parseClientMessage(JSON.stringify({ type: "vote", value: 5 }))).toEqual({
-        ok: false,
-        error: "Invalid vote message",
-      });
+      const result = parseClientMessage(JSON.stringify({ type: "vote", value: 5 }));
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toBe("Invalid vote message");
+        expect(result.detail).toBeInstanceOf(Array);
+      }
     });
 
     it("normalizes a vote with a non-string value (null)", () => {
-      expect(parseClientMessage(JSON.stringify({ type: "vote", value: null }))).toEqual({
-        ok: false,
-        error: "Invalid vote message",
-      });
+      const result = parseClientMessage(JSON.stringify({ type: "vote", value: null }));
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toBe("Invalid vote message");
+        expect(result.detail).toBeInstanceOf(Array);
+      }
     });
 
     it("normalizes an empty vote value (min length 1)", () => {
-      expect(parseClientMessage(JSON.stringify({ type: "vote", value: "" }))).toEqual({
-        ok: false,
-        error: "Invalid vote message",
-      });
+      const result = parseClientMessage(JSON.stringify({ type: "vote", value: "" }));
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toBe("Invalid vote message");
+        expect(result.detail).toBeInstanceOf(Array);
+      }
     });
 
     it("normalizes a vote value exceeding 64 chars", () => {
       const result = parseClientMessage(JSON.stringify({ type: "vote", value: "x".repeat(65) }));
-      expect(result).toEqual({ ok: false, error: "Invalid vote message" });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toBe("Invalid vote message");
+        expect(result.detail).toBeInstanceOf(Array);
+      }
     });
 
     it("uses the known type name verbatim in the normalized error", () => {
-      expect(parseClientMessage(JSON.stringify({ type: "vote", value: 5 }))).toEqual({
-        ok: false,
-        error: "Invalid vote message",
-      });
+      const result = parseClientMessage(JSON.stringify({ type: "vote", value: 5 }));
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toBe("Invalid vote message");
     });
 
     it("does not leak zod issue text in the normalized error", () => {
