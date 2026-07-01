@@ -1,8 +1,11 @@
 import { createApp, ref } from "vue";
 
-createApp({
+const app = createApp({
   setup() {
     const phase = ref("landing");
     return { phase };
   },
-}).mount("#app");
+});
+app.mount("#app");
+const loading = document.getElementById("loading");
+if (loading) loading.remove();

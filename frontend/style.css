@@ -1,3 +1,164 @@
 [v-cloak] {
   display: none;
 }
+
+:root {
+  --paper: #F2ECE1;
+  --paper-card: #FBF8F1;
+  --ink: #2A2420;
+  --ink-soft: #7A7062;
+  --ink-faint: #A79C89;
+  --rule: #D9CFB9;
+  --stamp: #A6392C;
+  --stamp-soft: rgba(166, 57, 44, 0.10);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.012) 0px, rgba(0, 0, 0, 0.012) 1px, transparent 1px, transparent 3px),
+    var(--paper);
+  color: var(--ink);
+  font-family: 'Source Serif 4', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.display {
+  font-family: 'Fraunces', serif;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.app {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 32px 64px;
+}
+
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 18px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.brand .mark {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0.01em;
+}
+
+.brand .mark span {
+  color: var(--stamp);
+}
+
+.room-code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+
+.card {
+  width: 76px;
+  height: 106px;
+  background: var(--paper-card);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 6px 14px rgba(42, 36, 32, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.card .value {
+  font-family: 'Fraunces', serif;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  border-top: 1px dashed var(--rule);
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  border-bottom: 1px dashed var(--rule);
+}
+
+.card-back {
+  width: 16px;
+  height: 22px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(45deg, var(--paper-card), var(--paper-card) 2px, var(--rule) 2px, var(--rule) 4px);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 40px;
+}
+
+@media (max-width: 820px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.table-area {
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 40px 20px;
+  border: 1px solid var(--rule);
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.02), transparent 70%);
+}
+
+.roster {
+  border-left: 1px solid var(--rule);
+  padding-left: 28px;
+}
+
+.roster h3 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 16px;
+  font-weight: 400;
+}
