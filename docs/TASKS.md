@@ -8,9 +8,9 @@ Convention: mark items `- [ ]` / `- [x]` as you go. Each task is sized to be ind
 
 ## Phase 0 — Scaffold
 
-- [ ] 0.1 Create `frontend/` directory with three empty files: `index.html`, `style.css`, `app.js`, plus a `README.md` stub noting that deployment/GitHub Pages setup is deferred until the repo split.
-- [ ] 0.2 In `index.html`, add the document shell: `<!DOCTYPE html>`, `<meta charset>`, viewport, `<title>Deal — Planning Poker</title>`, the Google Fonts `<link>` for Fraunces / Source Serif 4 / IBM Plex Mono (copy the exact `family=` URL from `docs/mock.html`), a `<link rel="stylesheet" href="style.css">`, and a `<script type="importmap">` pinning Vue 3 ESM prod (`"vue": "https://unpkg.com/vue@3.<pin-specific-minor>/dist/vue.esm-browser.prod.js"` — pick a concrete 3.x version, do not leave `@3` floating). End `app.js` as `<script type="module" src="app.js"></script>`.
-- [ ] 0.3 Add `#app` mount point with `[v-cloak]` attribute, and a static "Loading…" line **outside** `#app` per design Q37. Add `[v-cloak]{display:none}` to `style.css`. Verify: opening `index.html` shows "Loading…" then goes blank once Vue mounts an empty template, with no console errors.
+- [x] 0.1 Create `frontend/` directory with three empty files: `index.html`, `style.css`, `app.js`, plus a `README.md` stub noting that deployment/GitHub Pages setup is deferred until the repo split.
+- [x] 0.2 In `index.html`, add the document shell: `<!DOCTYPE html>`, `<meta charset>`, viewport, `<title>Deal — Planning Poker</title>`, the Google Fonts `<link>` for Fraunces / Source Serif 4 / IBM Plex Mono (copy the exact `family=` URL from `docs/mock.html`), a `<link rel="stylesheet" href="style.css">`, and a `<script type="importmap">` pinning Vue 3 ESM prod (`"vue": "https://unpkg.com/vue@3.<pin-specific-minor>/dist/vue.esm-browser.prod.js"` — pick a concrete 3.x version, do not leave `@3` floating). End `app.js` as `<script type="module" src="app.js"></script>`.
+- [x] 0.3 Add `#app` mount point with `[v-cloak]` attribute, and a static "Loading…" line **outside** `#app` per design Q37. Add `[v-cloak]{display:none}` to `style.css`. Verify: opening `index.html` shows "Loading…" then goes blank once Vue mounts an empty template, with no console errors.
 
 ## Phase 1 — Paper & Ink design tokens & base
 
