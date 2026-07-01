@@ -36,12 +36,13 @@ AGENTS.md         # this file — keep it current
 
 ```bash
 pnpm typecheck   # tsc --noEmit, strict mode
+pnpm format      # biome format --write src test — run BEFORE lint; no-op when nothing to fix
 pnpm lint        # biome check src test
 pnpm test        # vitest run
 pnpm build       # tsc → dist/ (verify the build compiles; run before committing wire-up Changes)
 ```
 
-All three must pass. If `pnpm lint` complains about formatting, run `pnpm format` and re-stage. Do not commit if any of these fail.
+All four must pass. Run `pnpm format` *before* `pnpm lint` every time — it is a no-op when files are already formatted, and a fix-then-re-stage when they aren't, so you never waste a lint round-trip on formatting. Do not commit if any of these fail.
 
 `vitest.config.ts` pins `include: ["test/**/*.test.ts"]` and excludes `dist/` — without it, `pnpm build` emits `dist/test/*.js` and `pnpm test` double-runs them (212 tests instead of 106). `dist/` is gitignored; do not commit it.
 
