@@ -180,25 +180,28 @@ export function startRuntime(deps: ServerDeps): Runtime {
           }
         }
       }
-      const wait = Math.min(deps.config.shutdownGraceMs, 1000);
-      await new Promise((resolve) => setTimeout(resolve, wait));
+      await new Promise((resolve) => setTimeout(resolve, deps.config.shutdownGraceMs));
     },
   };
 }
 
 export function startHeartbeat(deps: ServerDeps): NodeJS.Timeout {
   return setInterval(() => {
+    const now = Date.now();
+    const deadline = deps.config.heartbeatIntervalMs + deps.config.heartbeatTimeoutMs;
     for (const ws of deps.wss.clients) {
-      const hbWs = ws as WebSocket & { isAlive?: boolean };
-      if (hbWs.isAlive === false) {
+      const hbWs = ws as WebSocket & { lastPongAt?: number };
+      if (hbWs.lastPongAt === undefined) {
+        hbWs.lastPongAt = now;
+      }
+      if (now - hbWs.lastPongAt > deadline) {
         try {
-          ws.terminate();
+          ws.close(1011);
         } catch {
           // best-effort
         }
         continue;
       }
-      hbWs.isAlive = false;
       try {
         ws.ping();
       } catch {
@@ -210,10 +213,10 @@ export function startHeartbeat(deps: ServerDeps): NodeJS.Timeout {
 
 export function attachPongHandler(wss: WebSocketServer): void {
   wss.on("connection", (ws) => {
-    const hbWs = ws as WebSocket & { isAlive?: boolean };
-    hbWs.isAlive = true;
+    const hbWs = ws as WebSocket & { lastPongAt?: number };
+    hbWs.lastPongAt = Date.now();
     ws.on("pong", () => {
-      hbWs.isAlive = true;
+      hbWs.lastPongAt = Date.now();
     });
   });
 }
@@ -221,7 +224,10 @@ export function attachPongHandler(wss: WebSocketServer): void {
 export function main(): void {
   const config = loadConfig();
   const logger = pino({ level: config.logLevel });
-  const wss = new WebSocketServer({ noServer: true });
+  const wss = new WebSocketServer({
+    noServer: true,
+    maxPayload: config.maxPayloadBytes,
+  });
   attachPongHandler(wss);
   let shuttingDown = false;
   const deps: ServerDeps = {
