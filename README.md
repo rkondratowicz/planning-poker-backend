@@ -84,6 +84,10 @@ All settings have sensible defaults — the server runs correctly with zero conf
 | `MESSAGE_RATE_WINDOW_MS` | `1000` | Rate-limit window length |
 | `SHUTDOWN_GRACE_MS` | `20000` | Max wait for graceful shutdown before forced exit |
 
+## Frontend
+
+A sample frontend client lives in the [`frontend/`](./frontend) folder — a single-page Vue app (no build step) that connects to the backend over WebSocket. Open `frontend/index.html` locally or visit the hosted version on GitHub Pages.
+
 ## Protocol
 
 The full message contract — what the server sends, what it accepts, and all error cases — is documented in [`planning-poker-api-contract.md`](./docs/planning-poker-api-contract.md). Read that if you're building a client or want to understand the wire format precisely.
