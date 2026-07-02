@@ -449,10 +449,6 @@ header {
 .hand-card:nth-child(7)  { transform: rotate(-2.5deg); }
 .hand-card:nth-child(8)  { transform: rotate(1deg); }
 .hand-card:nth-child(9)  { transform: rotate(-0.5deg); }
-.hand-card:nth-child(10) { transform: rotate(3deg); }
-.hand-card:nth-child(11) { transform: rotate(-3deg); }
-.hand-card:nth-child(12) { transform: rotate(2deg); }
-.hand-card:nth-child(13) { transform: rotate(-1.5deg); }
 
 .hand-card:hover {
   transform: translateY(-6px) rotate(0deg);

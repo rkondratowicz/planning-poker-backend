@@ -71,7 +71,7 @@ const app = createApp({
       () => !nameValid.value || state.phase === "connecting" || (roomParam.present && !roomParam.valid),
     );
 
-    const deck = ["0", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89", "?", "\u2615"];
+    const deck = ["0", "1", "2", "3", "5", "8", "13", "?", "\u2615"];
     const votedCount = computed(
       () => state.users.filter((u) => u.hasVoted).length,
     );
@@ -109,7 +109,7 @@ const app = createApp({
 
     const isHost = computed(() => state.hostId === state.myUserId);
 
-    const FIBONACCI = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+    const FIBONACCI = [0, 1, 2, 3, 5, 8, 13];
 
     const revealSlots = computed(() => {
       if (!state.revealed || !state.votes) return [];
