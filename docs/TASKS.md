@@ -115,6 +115,6 @@ Convention: mark items `- [ ]` / `- [x]` as you go. Each task is sized to be ind
 - [x] 12.1 Final `frontend/` contents: `index.html`, `style.css`, `app.js`, `README.md`. No `node_modules`, no build artifacts, no `.nojekyll` (Q11). `README.md` notes the eventual GitHub Pages setup is deferred until repo split.
 - [x] 12.2 Pin the Vue version in the import map to a concrete 3.x minor (e.g. `vue@3.5.13`), not `@3` floating, not `latest`.
 - [x] 12.3 Update `docs/TASKS.md` checkbox state and note any follow-ups (e.g. deferred reveal/stamp animation, median-vs-mode decision) inline as `- [ ] 12.x` follow-up items.
-- [ ] 12.4 Follow-up: add reveal/stamp landing animation (overshoot/thud) per style guide Motion section
-- [ ] 12.5 Follow-up: voting-to-reveal card flip transition (style guide: "physical flip/turn, not a fade")
-- [ ] 12.6 Follow-up: confirm median-vs-mode stat choice with user (currently showing median per style guide spec)
+- [x] 12.4 Follow-up: add reveal/stamp landing animation (overshoot/thud) per style guide Motion section
+- [x] 12.5 Follow-up: voting-to-reveal card flip transition (style guide: "physical flip/turn, not a fade")
+- [x] 12.6 Follow-up: confirm median-vs-mode stat choice with user (currently showing median per style guide spec)

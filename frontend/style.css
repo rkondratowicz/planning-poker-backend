@@ -523,6 +523,22 @@ header {
   padding: 4px 10px;
   transform: rotate(8deg);
   opacity: 0.85;
+  animation: stamp-land 0.35s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+@keyframes stamp-land {
+  0% {
+    transform: rotate(8deg) scale(1.6);
+    opacity: 0;
+  }
+  60% {
+    transform: rotate(8deg) scale(0.92);
+    opacity: 0.9;
+  }
+  100% {
+    transform: rotate(8deg) scale(1);
+    opacity: 0.85;
+  }
 }
 
 .reveal-grid {
@@ -538,6 +554,33 @@ header {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  animation: card-flip 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.reveal-slot:nth-child(1) { animation-delay: 0ms; }
+.reveal-slot:nth-child(2) { animation-delay: 60ms; }
+.reveal-slot:nth-child(3) { animation-delay: 120ms; }
+.reveal-slot:nth-child(4) { animation-delay: 180ms; }
+.reveal-slot:nth-child(5) { animation-delay: 240ms; }
+.reveal-slot:nth-child(6) { animation-delay: 300ms; }
+.reveal-slot:nth-child(7) { animation-delay: 360ms; }
+.reveal-slot:nth-child(8) { animation-delay: 420ms; }
+.reveal-slot:nth-child(9) { animation-delay: 480ms; }
+.reveal-slot:nth-child(10) { animation-delay: 540ms; }
+
+@keyframes card-flip {
+  0% {
+    transform: rotateY(90deg) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: rotateY(-10deg) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+  }
 }
 
 .reveal-card {

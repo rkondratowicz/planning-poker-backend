@@ -131,28 +131,24 @@ const app = createApp({
 
     const revealStats = computed(() => {
       if (!state.revealed || !state.votes) {
-        return { average: "\u2014", median: "\u2014", spread: "\u2014" };
+        return { average: "\u2014", mode: "\u2014", spread: "\u2014" };
       }
       const nums = Object.values(state.votes)
         .map((v) => parseFloat(v))
         .filter((n) => !isNaN(n));
       if (nums.length === 0) {
-        return { average: "\u2014", median: "\u2014", spread: "\u2014" };
+        return { average: "\u2014", mode: "\u2014", spread: "\u2014" };
       }
       const sorted = [...nums].sort((a, b) => a - b);
       const sum = sorted.reduce((acc, n) => acc + n, 0);
       const avg = sum / sorted.length;
-      const mid = Math.floor(sorted.length / 2);
-      const median =
-        sorted.length % 2 === 0
-          ? (sorted[mid - 1] + sorted[mid]) / 2
-          : sorted[mid];
+      const mode = getMode(nums);
       const min = sorted[0];
       const max = sorted[sorted.length - 1];
       const spread = min === max ? `${min}` : `${min}\u2013${max}`;
       return {
         average: avg % 1 === 0 ? `${avg}` : avg.toFixed(1),
-        median: median % 1 === 0 ? `${median}` : median.toFixed(1),
+        mode: mode !== null ? (mode % 1 === 0 ? `${mode}` : mode.toFixed(1)) : "\u2014",
         spread,
       };
     });
