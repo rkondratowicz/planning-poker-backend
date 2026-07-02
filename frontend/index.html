@@ -20,22 +20,85 @@
   <p id="loading">Loading…</p>
   <div id="app" v-cloak>
     <div class="app">
-      <header>
-        <div class="brand">
-          <div class="mark">deal<span>.</span></div>
+      <div v-if="state.phase === 'landing' || state.phase === 'connecting'" class="landing">
+        <div class="landing-brand">
+          <div class="mark display">deal<span>.</span></div>
         </div>
-        <div class="room-code">session · maple-otter-42</div>
-      </header>
-      <div class="layout">
-        <div class="table-area">
-          <div class="card"><div class="value">5</div></div>
-          <div class="card"><div class="value">8</div></div>
-          <div class="card-back"></div>
+        <h2 v-if="hasRoomParam" class="landing-heading">Joining room <span class="mono">{{ state.roomId }}</span></h2>
+        <p v-if="state.errorMsg && state.phase === 'landing'" class="landing-error">{{ state.errorMsg }}</p>
+        <form class="landing-form" @submit.prevent="handleAction">
+          <input
+            v-model="state.myName"
+            type="text"
+            class="landing-input"
+            placeholder="Your name"
+            maxlength="32"
+            :disabled="state.phase === 'connecting'"
+          >
+          <button
+            type="submit"
+            class="landing-btn"
+            :disabled="actionDisabled"
+            :class="{ pending: state.phase === 'connecting' }"
+          >{{ actionLabel }}</button>
+        </form>
+      </div>
+      <div v-else-if="state.phase === 'connected'">
+        <header>
+          <div class="brand">
+            <div class="mark">deal<span>.</span></div>
+          </div>
+          <div class="room-code">session · {{ state.roomId }}</div>
+        </header>
+        <div class="phase-toggle">
+          <span :class="{ active: !state.revealed }">Voting</span>
+          <span :class="{ active: state.revealed }">Revealed</span>
         </div>
-        <div class="roster">
-          <h3>Table</h3>
+        <div class="layout">
+          <div class="table-area">
+            <div v-if="!state.revealed" class="voting-area">
+              <p class="voting-prompt">Everyone's choosing in private…</p>
+              <p class="voting-count mono">{{ votedCount }} of {{ state.users.length }} have voted</p>
+              <div class="hand">
+                <button
+                  v-for="v in deck"
+                  :key="v"
+                  class="card hand-card"
+                  :class="{ selected: state.myVote === v }"
+                  @click="sendVote(v)"
+                ><div class="value">{{ v }}</div></button>
+              </div>
+            </div>
+            <div v-else class="reveal-area">
+              <p>reveal panel</p>
+            </div>
+          </div>
+          <div class="roster">
+            <h3>Table</h3>
+            <div v-for="user in state.users" :key="user.id" class="roster-row">
+              <div class="roster-left">
+                <span class="roster-name">{{ user.name }}</span>
+                <span v-if="user.id === state.myUserId" class="roster-you">you</span>
+              </div>
+              <div class="roster-right">
+                <template v-if="state.revealed">
+                  <span v-if="state.votes && state.votes[user.id] != null" class="roster-vote mono">{{ state.votes[user.id] }}</span>
+                  <span v-else class="roster-no-vote">&mdash;</span>
+                </template>
+                <template v-else>
+                  <span v-if="user.hasVoted" class="card-back"></span>
+                  <span v-else class="roster-thinking">thinking…</span>
+                </template>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      <div v-else-if="state.phase === 'disconnected'" class="disconnected">
+        <p class="disconnected-msg">{{ state.errorMsg || 'Disconnected.' }}</p>
+        <button class="landing-btn" @click="$event => location.reload()">Reload</button>
+      </div>
+      <div v-if="state.toast" class="toast">{{ state.toast }}</div>
     </div>
   </div>
   <script type="module" src="app.js"></script>
