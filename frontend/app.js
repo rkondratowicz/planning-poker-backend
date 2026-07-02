@@ -1,7 +1,7 @@
 import { createApp, ref, reactive, computed } from "vue";
 
 const DEV_WS_URL = "ws://localhost:3000/ws";
-const PROD_WS_URL = "wss://planning-poker-backend.onrender.com/ws";
+const PROD_WS_URL = "wss://planning-poker-backend-ymq7.onrender.com/ws";
 const wsUrl =
   location.hostname === "localhost" ? DEV_WS_URL : PROD_WS_URL;
 
