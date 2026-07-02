@@ -48,7 +48,10 @@
           <div class="brand">
             <div class="mark">deal<span>.</span></div>
           </div>
-          <div class="room-code">session · {{ state.roomId }}</div>
+          <div class="header-right">
+            <div class="room-code">session · {{ state.roomId }}</div>
+            <button class="copy-invite" @click="copyInviteLink">Copy link</button>
+          </div>
         </header>
         <div class="phase-toggle">
           <span :class="{ active: !state.revealed }">Voting</span>
@@ -68,9 +71,40 @@
                   @click="sendVote(v)"
                 ><div class="value">{{ v }}</div></button>
               </div>
+              <div v-if="isHost" class="host-controls">
+                <button class="host-btn host-btn-primary" @click="sendReveal">Reveal</button>
+              </div>
             </div>
             <div v-else class="reveal-area">
-              <p>reveal panel</p>
+              <div class="stamp">REVEALED</div>
+              <div class="reveal-grid">
+                <div v-for="(slot, idx) in revealSlots" :key="slot.id" class="reveal-slot">
+                  <div
+                    class="card reveal-card"
+                    :class="{ outlier: isOutlier(slot.vote) }"
+                    :style="{ transform: 'rotate(' + ((idx % 2 === 0 ? -1 : 1) * (2 + (idx % 3))) + 'deg)' }"
+                  ><div class="value">{{ slot.vote ?? '\u2014' }}</div></div>
+                  <span class="reveal-name">{{ slot.name }}</span>
+                </div>
+              </div>
+              <div class="reveal-stats">
+                <div class="stat">
+                  <span class="stat-value display">{{ revealStats.average }}</span>
+                  <span class="stat-label mono">Average</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value display">{{ revealStats.median }}</span>
+                  <span class="stat-label mono">Median</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value display">{{ revealStats.spread }}</span>
+                  <span class="stat-label mono">Spread</span>
+                </div>
+              </div>
+              <p v-if="consensusNote" class="consensus-note">{{ consensusNote }}</p>
+              <div v-if="isHost" class="host-controls">
+                <button class="host-btn host-btn-primary" @click="sendReset">Re-deal round</button>
+              </div>
             </div>
           </div>
           <div class="roster">

@@ -76,14 +76,150 @@ const app = createApp({
       () => state.users.filter((u) => u.hasVoted).length,
     );
 
-    function sendVote(value) {
+    function sendMsg(msg) {
       if (!socket || socket.readyState !== WebSocket.OPEN) {
         showToast("Not connected yet");
-        return;
+        return false;
       }
-      socket.send(JSON.stringify({ type: "vote", value }));
-      state.myVote = value;
+      socket.send(JSON.stringify(msg));
+      return true;
     }
+
+    function sendVote(value) {
+      if (sendMsg({ type: "vote", value })) {
+        state.myVote = value;
+      }
+    }
+
+    function sendReveal() {
+      sendMsg({ type: "reveal" });
+    }
+
+    function sendReset() {
+      sendMsg({ type: "reset" });
+    }
+
+    function copyInviteLink() {
+      const url = `${location.origin}${location.pathname}?room=${encodeURIComponent(state.roomId)}`;
+      navigator.clipboard.writeText(url).then(
+        () => showToast("Link copied"),
+        () => showToast("Couldn\u2019t copy \u2014 copy the URL from the address bar"),
+      );
+    }
+
+    const isHost = computed(() => state.hostId === state.myUserId);
+
+    const FIBONACCI = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+
+    const revealSlots = computed(() => {
+      if (!state.revealed || !state.votes) return [];
+      return [...state.users]
+        .map((u) => ({ id: u.id, name: u.name, vote: state.votes[u.id] ?? null }))
+        .sort((a, b) => {
+          const aNum = parseFloat(a.vote);
+          const bNum = parseFloat(b.vote);
+          const aIsNum = !isNaN(aNum);
+          const bIsNum = !isNaN(bNum);
+          if (aIsNum && bIsNum) return aNum - bNum;
+          if (aIsNum) return -1;
+          if (bIsNum) return 1;
+          if (a.vote === "?") return b.vote === "\u2615" ? -1 : 0;
+          if (b.vote === "?") return a.vote === "\u2615" ? 1 : 0;
+          return 0;
+        });
+    });
+
+    const revealStats = computed(() => {
+      if (!state.revealed || !state.votes) {
+        return { average: "\u2014", median: "\u2014", spread: "\u2014" };
+      }
+      const nums = Object.values(state.votes)
+        .map((v) => parseFloat(v))
+        .filter((n) => !isNaN(n));
+      if (nums.length === 0) {
+        return { average: "\u2014", median: "\u2014", spread: "\u2014" };
+      }
+      const sorted = [...nums].sort((a, b) => a - b);
+      const sum = sorted.reduce((acc, n) => acc + n, 0);
+      const avg = sum / sorted.length;
+      const mid = Math.floor(sorted.length / 2);
+      const median =
+        sorted.length % 2 === 0
+          ? (sorted[mid - 1] + sorted[mid]) / 2
+          : sorted[mid];
+      const min = sorted[0];
+      const max = sorted[sorted.length - 1];
+      const spread = min === max ? `${min}` : `${min}\u2013${max}`;
+      return {
+        average: avg % 1 === 0 ? `${avg}` : avg.toFixed(1),
+        median: median % 1 === 0 ? `${median}` : median.toFixed(1),
+        spread,
+      };
+    });
+
+    function getMode(nums) {
+      const freq = {};
+      nums.forEach((n) => { freq[n] = (freq[n] || 0) + 1; });
+      let maxCount = 0;
+      let mode = null;
+      Object.entries(freq).forEach(([val, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          mode = parseFloat(val);
+        }
+      });
+      return mode;
+    }
+
+    function isOutlier(vote) {
+      if (!state.revealed || !state.votes) return false;
+      const v = parseFloat(vote);
+      if (isNaN(v)) return false;
+      const nums = Object.values(state.votes)
+        .map((x) => parseFloat(x))
+        .filter((n) => !isNaN(n));
+      if (nums.length < 3) return false;
+      const mode = getMode(nums);
+      if (mode === null) return false;
+      const modeIdx = FIBONACCI.indexOf(mode);
+      const vIdx = FIBONACCI.indexOf(v);
+      if (modeIdx === -1 || vIdx === -1) return Math.abs(v - mode) > mode * 0.5;
+      return Math.abs(vIdx - modeIdx) > 1;
+    }
+
+    const consensusNote = computed(() => {
+      if (!state.revealed || !state.votes) return "";
+      const nums = Object.values(state.votes)
+        .map((v) => parseFloat(v))
+        .filter((n) => !isNaN(n));
+      if (nums.length === 0) return "";
+      const sorted = [...nums].sort((a, b) => a - b);
+      const min = sorted[0];
+      const max = sorted[sorted.length - 1];
+      const mode = getMode(nums);
+      const minIdx = FIBONACCI.indexOf(min);
+      const maxIdx = FIBONACCI.indexOf(max);
+      const withinOneStep =
+        minIdx !== -1 && maxIdx !== -1
+          ? maxIdx - minIdx <= 1
+          : max - min <= 1;
+      if (withinOneStep) {
+        return `Consensus \u2014 everyone\u2019s near ${mode}.`;
+      }
+      const highestEntry = revealSlots.value
+        .filter((s) => !isNaN(parseFloat(s.vote)))
+        .reduce(
+          (best, s) =>
+            parseFloat(s.vote) > (best ? parseFloat(best.vote) : -Infinity)
+              ? s
+              : best,
+          null,
+        );
+      if (highestEntry) {
+        return `No consensus \u2014 ${highestEntry.name} is highest at ${highestEntry.vote}. Worth a quick word.`;
+      }
+      return "No consensus \u2014 spread is wide.";
+    });
 
     let socket = null;
 
@@ -126,6 +262,9 @@ const app = createApp({
             }
             if (!msg.revealed && msg.votes !== null) {
               msg.votes = null;
+            }
+            if (state.revealed && !msg.revealed) {
+              state.myVote = null;
             }
             state.hostId = msg.hostId;
             state.revealed = msg.revealed;
@@ -184,6 +323,14 @@ const app = createApp({
       deck,
       votedCount,
       sendVote,
+      sendReveal,
+      sendReset,
+      copyInviteLink,
+      isHost,
+      revealSlots,
+      revealStats,
+      isOutlier,
+      consensusNote,
     };
   },
 });
