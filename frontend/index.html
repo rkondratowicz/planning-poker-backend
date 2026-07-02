@@ -69,7 +69,7 @@
                   class="card hand-card"
                   :class="{ selected: state.myVote === v }"
                   @click="sendVote(v)"
-                ><div class="value">{{ v }}</div></button>
+                ><div class="value"><svg v-if="v === '\u2615'" class="icon-coffee" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg><template v-else>{{ v }}</template></div></button>
               </div>
               <div v-if="isHost" class="host-controls">
                 <button class="host-btn host-btn-primary" @click="sendReveal">Reveal</button>
@@ -83,7 +83,7 @@
                     class="card reveal-card"
                     :class="{ outlier: isOutlier(slot.vote) }"
                     :style="{ transform: 'rotate(' + ((idx % 2 === 0 ? -1 : 1) * (2 + (idx % 3))) + 'deg)' }"
-                  ><div class="value">{{ slot.vote ?? '\u2014' }}</div></div>
+                  ><div class="value"><svg v-if="slot.vote === '\u2615'" class="icon-coffee" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg><template v-else>{{ slot.vote ?? '\u2014' }}</template></div></div>
                   <span class="reveal-name">{{ slot.name }}</span>
                 </div>
               </div>
@@ -116,7 +116,7 @@
               </div>
               <div class="roster-right">
                 <template v-if="state.revealed">
-                  <span v-if="state.votes && state.votes[user.id] != null" class="roster-vote mono">{{ state.votes[user.id] }}</span>
+                  <span v-if="state.votes && state.votes[user.id] != null" class="roster-vote mono"><svg v-if="state.votes[user.id] === '\u2615'" class="icon-coffee icon-coffee-sm" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg><template v-else>{{ state.votes[user.id] }}</template></span>
                   <span v-else class="roster-no-vote">&mdash;</span>
                 </template>
                 <template v-else>

@@ -635,3 +635,14 @@ header {
   margin: 0;
   text-align: center;
 }
+
+.icon-coffee {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+}
+
+.icon-coffee-sm {
+  width: 14px;
+  height: 14px;
+}
