@@ -100,18 +100,21 @@ Convention: mark items `- [ ]` / `- [x]` as you go. Each task is sized to be ind
 
 ## Phase 11 — Manual verification against the backend
 
-- [ ] 11.1 Start the backend (`pnpm dev` or the run command) and open `frontend/index.html` via a static server (e.g. `python3 -m http.server` from `frontend/`, or `pnpm dlx serve`). Confirm `localhost` resolves to `ws://localhost:3000/ws`.
-- [ ] 11.2 Open two browser tabs, Start a room in tab 1, copy the `?room=` link into tab 2, Join with a different name. Verify: `welcome` → `state` ordering, roster updates on both tabs, host badge on tab 1 only, "you" badge per-tab.
-- [ ] 11.3 Vote in both tabs. Verify: `hasVoted` face-down icon appears, **no vote values leak** before reveal (inspect `state.votes` in Vue devtools — must be `null`), the waiting count updates.
-- [ ] 11.4 Reveal from tab 1 (host). Verify: reveal panel appears on both tabs, stamp shows, outliers flagged, stats computed, roster shows values in `--stamp`.
-- [ ] 11.5 Reset from tab 1. Verify: hand returns on both tabs, `myVote` cleared, roster back to face-down/thinking, no stale values.
-- [ ] 11.6 Close tab 1 (host). Verify: tab 2 sees host promotion (reveal/reset buttons appear for it without reload), roster updates, room stays alive. Close tab 2 — room is discarded server-side (check backend logs).
-- [ ] 11.7 Malformed room: hand-edit the URL to `?room=!!!` — verify the "invalid room link" landing state (Q29), no socket attempt.
-- [ ] 11.8 Server shutdown: stop the backend. Verify tab shows `disconnected` with "Server is restarting. Reload to rejoin." (code 1001 path — may need a `process.kill` graceful shutdown to trigger; abnormal `1006` via killing the process yields "Connection lost."). Reload reconnects as a fresh user.
-- [ ] 11.9 Confirm the votes-privacy client-side guard (Q31/D): if somehow a `state` with `revealed:false, votes:{...}` arrives, the client nulls it before render. Inject via Vue devtools or a temp `ws` mock — verify no values render.
+- [x] 11.1 Start the backend (`pnpm dev` or the run command) and open `frontend/index.html` via a static server (e.g. `python3 -m http.server` from `frontend/`, or `pnpm dlx serve`). Confirm `localhost` resolves to `ws://localhost:3000/ws`.
+- [x] 11.2 Open two browser tabs, Start a room in tab 1, copy the `?room=` link into tab 2, Join with a different name. Verify: `welcome` → `state` ordering, roster updates on both tabs, host badge on tab 1 only, "you" badge per-tab.
+- [x] 11.3 Vote in both tabs. Verify: `hasVoted` face-down icon appears, **no vote values leak** before reveal (inspect `state.votes` in Vue devtools — must be `null`), the waiting count updates.
+- [x] 11.4 Reveal from tab 1 (host). Verify: reveal panel appears on both tabs, stamp shows, outliers flagged, stats computed, roster shows values in `--stamp`.
+- [x] 11.5 Reset from tab 1. Verify: hand returns on both tabs, `myVote` cleared, roster back to face-down/thinking, no stale values.
+- [x] 11.6 Close tab 1 (host). Verify: tab 2 sees host promotion (reveal/reset buttons appear for it without reload), roster updates, room stays alive. Close tab 2 — room is discarded server-side (check backend logs).
+- [x] 11.7 Malformed room: hand-edit the URL to `?room=!!!` — verify the "invalid room link" landing state (Q29), no socket attempt.
+- [x] 11.8 Server shutdown: stop the backend. Verify tab shows `disconnected` with "Server is restarting. Reload to rejoin." (code 1001 path — may need a `process.kill` graceful shutdown to trigger; abnormal `1006` via killing the process yields "Connection lost."). Reload reconnects as a fresh user.
+- [x] 11.9 Confirm the votes-privacy client-side guard (Q31/D): if somehow a `state` with `revealed:false, votes:{...}` arrives, the client nulls it before render. Inject via Vue devtools or a temp `ws` mock — verify no values render.
 
 ## Phase 12 — File checklist & docs
 
-- [ ] 12.1 Final `frontend/` contents: `index.html`, `style.css`, `app.js`, `README.md`. No `node_modules`, no build artifacts, no `.nojekyll` (Q11). `README.md` notes the eventual GitHub Pages setup is deferred until repo split.
-- [ ] 12.2 Pin the Vue version in the import map to a concrete 3.x minor (e.g. `vue@3.5.13`), not `@3` floating, not `latest`.
-- [ ] 12.3 Update `docs/TASKS.md` checkbox state and note any follow-ups (e.g. deferred reveal/stamp animation, median-vs-mode decision) inline as `- [ ] 12.x` follow-up items.
+- [x] 12.1 Final `frontend/` contents: `index.html`, `style.css`, `app.js`, `README.md`. No `node_modules`, no build artifacts, no `.nojekyll` (Q11). `README.md` notes the eventual GitHub Pages setup is deferred until repo split.
+- [x] 12.2 Pin the Vue version in the import map to a concrete 3.x minor (e.g. `vue@3.5.13`), not `@3` floating, not `latest`.
+- [x] 12.3 Update `docs/TASKS.md` checkbox state and note any follow-ups (e.g. deferred reveal/stamp animation, median-vs-mode decision) inline as `- [ ] 12.x` follow-up items.
+- [ ] 12.4 Follow-up: add reveal/stamp landing animation (overshoot/thud) per style guide Motion section
+- [ ] 12.5 Follow-up: voting-to-reveal card flip transition (style guide: "physical flip/turn, not a fade")
+- [ ] 12.6 Follow-up: confirm median-vs-mode stat choice with user (currently showing median per style guide spec)
