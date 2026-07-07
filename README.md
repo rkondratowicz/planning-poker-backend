@@ -86,7 +86,7 @@ All settings have sensible defaults — the server runs correctly with zero conf
 
 ## Frontend
 
-A sample frontend client lives in the [`frontend/`](./frontend) folder — a single-page Vue app (no build step) that connects to the backend over WebSocket. Open `frontend/index.html` locally or visit the hosted version on GitHub Pages.
+A sample frontend client lives in the [`frontend/`](./frontend) folder — a single-page Vue app (no build step) that connects to the backend over WebSocket. Open `frontend/index.html` locally or visit the hosted version at **[https://rkondratowicz.github.io/planning-poker-backend/](https://rkondratowicz.github.io/planning-poker-backend/)**.
 
 ## Protocol
 
