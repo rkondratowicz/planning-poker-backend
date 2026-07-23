@@ -108,6 +108,9 @@ const app = createApp({
     }
 
     const isHost = computed(() => state.hostId === state.myUserId);
+    const hostName = computed(
+      () => state.users.find((u) => u.id === state.hostId)?.name ?? "\u2014",
+    );
 
     const FIBONACCI = [0, 1, 2, 3, 5, 8, 13];
 
@@ -323,6 +326,7 @@ const app = createApp({
       sendReset,
       copyInviteLink,
       isHost,
+      hostName,
       revealSlots,
       revealStats,
       isOutlier,

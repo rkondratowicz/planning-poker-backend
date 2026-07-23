@@ -77,10 +77,19 @@ header {
   letter-spacing: 0.02em;
 }
 
+.host-indicator {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  border-left: 1px solid var(--rule);
+  padding-left: 12px;
+}
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .copy-invite {
@@ -381,6 +390,16 @@ header {
   letter-spacing: 0.02em;
 }
 
+.roster-host {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-soft);
+  border: 1px solid var(--ink-faint);
+  border-radius: 2px;
+  padding: 1px 5px;
+  letter-spacing: 0.02em;
+}
+
 .roster-right {
   display: flex;
   align-items: center;
@@ -596,6 +615,18 @@ header {
   font-family: 'Source Serif 4', serif;
   font-size: 13px;
   color: var(--ink-soft);
+}
+
+.reveal-host {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  margin-left: 5px;
+}
+
+.reveal-host::before {
+  content: '\00b7\0020';
 }
 
 .reveal-stats {

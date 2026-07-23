@@ -50,6 +50,7 @@
           </div>
           <div class="header-right">
             <div class="room-code">session · {{ state.roomId }}</div>
+            <div class="host-indicator mono">{{ isHost ? "you're hosting" : "hosted by " + hostName }}</div>
             <button class="copy-invite" @click="copyInviteLink">Copy link</button>
           </div>
         </header>
@@ -84,7 +85,7 @@
                     :class="{ outlier: isOutlier(slot.vote) }"
                     :style="{ transform: 'rotate(' + ((idx % 2 === 0 ? -1 : 1) * (2 + (idx % 3))) + 'deg)' }"
                   ><div class="value"><svg v-if="slot.vote === '\u2615'" class="icon-coffee" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg><template v-else>{{ slot.vote ?? '\u2014' }}</template></div></div>
-                  <span class="reveal-name">{{ slot.name }}</span>
+                  <span class="reveal-name">{{ slot.name }}<span v-if="slot.id === state.hostId" class="reveal-host">host</span></span>
                 </div>
               </div>
               <div class="reveal-stats">
@@ -112,6 +113,7 @@
             <div v-for="user in state.users" :key="user.id" class="roster-row">
               <div class="roster-left">
                 <span class="roster-name">{{ user.name }}</span>
+                <span v-if="user.id === state.hostId" class="roster-host">host</span>
                 <span v-if="user.id === state.myUserId" class="roster-you">you</span>
               </div>
               <div class="roster-right">
