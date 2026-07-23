@@ -7,6 +7,21 @@ const wsUrl =
 
 const ROOM_ID_REGEX = /^[a-z0-9]{4,32}(-[a-z0-9]{4,32})*$/;
 
+const DECKS = {
+  fibonacci: {
+    cards: ["0", "1", "2", "3", "5", "8", "13", "?", "\u2615"],
+    order: ["0", "1", "2", "3", "5", "8", "13"],
+    numeric: true,
+  },
+  tshirt: {
+    cards: ["XS", "S", "M", "L", "XL", "?", "\u2615"],
+    order: ["XS", "S", "M", "L", "XL"],
+    numeric: false,
+  },
+};
+const DEFAULT_DECK_KEY = "fibonacci";
+
+
 function parseRoomParam() {
   const raw = new URLSearchParams(location.search).get("room");
   if (raw === null) return { present: false, valid: false, roomId: null };
@@ -36,6 +51,8 @@ const app = createApp({
       myUserId: null,
       hostId: null,
       revealed: false,
+      deck: DEFAULT_DECK_KEY,
+      selectedDeck: DEFAULT_DECK_KEY,
       users: [],
       votes: null,
       phase: "landing",
@@ -71,7 +88,8 @@ const app = createApp({
       () => !nameValid.value || state.phase === "connecting" || (roomParam.present && !roomParam.valid),
     );
 
-    const deck = ["0", "1", "2", "3", "5", "8", "13", "?", "\u2615"];
+    const activeDeck = computed(() => DECKS[state.deck] ?? DECKS[DEFAULT_DECK_KEY]);
+    const cards = computed(() => activeDeck.value.cards);
     const votedCount = computed(
       () => state.users.filter((u) => u.hasVoted).length,
     );
@@ -112,20 +130,22 @@ const app = createApp({
       () => state.users.find((u) => u.id === state.hostId)?.name ?? "\u2014",
     );
 
-    const FIBONACCI = [0, 1, 2, 3, 5, 8, 13];
+    function orderIndex(vote) {
+      return activeDeck.value.order.indexOf(vote);
+    }
 
     const revealSlots = computed(() => {
       if (!state.revealed || !state.votes) return [];
       return [...state.users]
         .map((u) => ({ id: u.id, name: u.name, vote: state.votes[u.id] ?? null }))
         .sort((a, b) => {
-          const aNum = parseFloat(a.vote);
-          const bNum = parseFloat(b.vote);
-          const aIsNum = !isNaN(aNum);
-          const bIsNum = !isNaN(bNum);
-          if (aIsNum && bIsNum) return aNum - bNum;
-          if (aIsNum) return -1;
-          if (bIsNum) return 1;
+          const aIdx = orderIndex(a.vote);
+          const bIdx = orderIndex(b.vote);
+          const aScored = aIdx !== -1;
+          const bScored = bIdx !== -1;
+          if (aScored && bScored) return aIdx - bIdx;
+          if (aScored) return -1;
+          if (bScored) return 1;
           if (a.vote === "?") return b.vote === "\u2615" ? -1 : 0;
           if (b.vote === "?") return a.vote === "\u2615" ? 1 : 0;
           return 0;
@@ -136,82 +156,82 @@ const app = createApp({
       if (!state.revealed || !state.votes) {
         return { average: "\u2014", mode: "\u2014", spread: "\u2014" };
       }
-      const nums = Object.values(state.votes)
-        .map((v) => parseFloat(v))
-        .filter((n) => !isNaN(n));
-      if (nums.length === 0) {
+      const votesList = Object.values(state.votes);
+      const indices = votesList.map(orderIndex).filter((i) => i !== -1);
+      if (indices.length === 0) {
         return { average: "\u2014", mode: "\u2014", spread: "\u2014" };
       }
-      const sorted = [...nums].sort((a, b) => a - b);
-      const sum = sorted.reduce((acc, n) => acc + n, 0);
-      const avg = sum / sorted.length;
-      const mode = getMode(nums);
-      const min = sorted[0];
-      const max = sorted[sorted.length - 1];
+      const sortedIndices = [...indices].sort((a, b) => a - b);
+      const modeIdx = getModeIndex(indices);
+      const min = activeDeck.value.order[sortedIndices[0]];
+      const max = activeDeck.value.order[sortedIndices[sortedIndices.length - 1]];
       const spread = min === max ? `${min}` : `${min}\u2013${max}`;
+      const mode = modeIdx !== null ? activeDeck.value.order[modeIdx] : "\u2014";
+
+      if (activeDeck.value.numeric) {
+        const nums = votesList.map((v) => parseFloat(v)).filter((n) => !isNaN(n));
+        const sum = nums.reduce((acc, n) => acc + n, 0);
+        const avg = nums.length > 0 ? sum / nums.length : null;
+        return {
+          average: avg !== null ? (avg % 1 === 0 ? `${avg}` : avg.toFixed(1)) : "\u2014",
+          mode,
+          spread,
+        };
+      }
+
+      const medianIdx =
+        sortedIndices.length % 2 === 1
+          ? sortedIndices[(sortedIndices.length - 1) / 2]
+          : sortedIndices[sortedIndices.length / 2];
       return {
-        average: avg % 1 === 0 ? `${avg}` : avg.toFixed(1),
-        mode: mode !== null ? (mode % 1 === 0 ? `${mode}` : mode.toFixed(1)) : "\u2014",
+        average: activeDeck.value.order[medianIdx],
+        mode,
         spread,
       };
     });
 
-    function getMode(nums) {
+    function getModeIndex(indices) {
       const freq = {};
-      nums.forEach((n) => { freq[n] = (freq[n] || 0) + 1; });
+      indices.forEach((i) => { freq[i] = (freq[i] || 0) + 1; });
       let maxCount = 0;
-      let mode = null;
-      Object.entries(freq).forEach(([val, count]) => {
+      let modeIdx = null;
+      Object.entries(freq).forEach(([idxStr, count]) => {
         if (count > maxCount) {
           maxCount = count;
-          mode = parseFloat(val);
+          modeIdx = Number(idxStr);
         }
       });
-      return mode;
+      return modeIdx;
     }
 
     function isOutlier(vote) {
       if (!state.revealed || !state.votes) return false;
-      const v = parseFloat(vote);
-      if (isNaN(v)) return false;
-      const nums = Object.values(state.votes)
-        .map((x) => parseFloat(x))
-        .filter((n) => !isNaN(n));
-      if (nums.length < 3) return false;
-      const mode = getMode(nums);
-      if (mode === null) return false;
-      const modeIdx = FIBONACCI.indexOf(mode);
-      const vIdx = FIBONACCI.indexOf(v);
-      if (modeIdx === -1 || vIdx === -1) return Math.abs(v - mode) > mode * 0.5;
+      const vIdx = orderIndex(vote);
+      if (vIdx === -1) return false;
+      const indices = Object.values(state.votes).map(orderIndex).filter((i) => i !== -1);
+      if (indices.length < 3) return false;
+      const modeIdx = getModeIndex(indices);
+      if (modeIdx === null) return false;
       return Math.abs(vIdx - modeIdx) > 1;
     }
 
     const consensusNote = computed(() => {
       if (!state.revealed || !state.votes) return "";
-      const nums = Object.values(state.votes)
-        .map((v) => parseFloat(v))
-        .filter((n) => !isNaN(n));
-      if (nums.length === 0) return "";
-      const sorted = [...nums].sort((a, b) => a - b);
-      const min = sorted[0];
-      const max = sorted[sorted.length - 1];
-      const mode = getMode(nums);
-      const minIdx = FIBONACCI.indexOf(min);
-      const maxIdx = FIBONACCI.indexOf(max);
-      const withinOneStep =
-        minIdx !== -1 && maxIdx !== -1
-          ? maxIdx - minIdx <= 1
-          : max - min <= 1;
-      if (withinOneStep) {
-        return `Consensus \u2014 everyone\u2019s near ${mode}.`;
+      const indices = Object.values(state.votes).map(orderIndex).filter((i) => i !== -1);
+      if (indices.length === 0) return "";
+      const sorted = [...indices].sort((a, b) => a - b);
+      const minIdx = sorted[0];
+      const maxIdx = sorted[sorted.length - 1];
+      const modeIdx = getModeIndex(indices);
+      const modeLabel = activeDeck.value.order[modeIdx];
+      if (maxIdx - minIdx <= 1) {
+        return `Consensus \u2014 everyone\u2019s near ${modeLabel}.`;
       }
       const highestEntry = revealSlots.value
-        .filter((s) => !isNaN(parseFloat(s.vote)))
+        .filter((s) => orderIndex(s.vote) !== -1)
         .reduce(
           (best, s) =>
-            parseFloat(s.vote) > (best ? parseFloat(best.vote) : -Infinity)
-              ? s
-              : best,
+            orderIndex(s.vote) > (best ? orderIndex(best.vote) : -Infinity) ? s : best,
           null,
         );
       if (highestEntry) {
@@ -224,7 +244,10 @@ const app = createApp({
 
     function connect(name) {
       const roomId = state.roomId;
-      const url = `${wsUrl}?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(name.trim())}`;
+      let url = `${wsUrl}?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(name.trim())}`;
+      if (!hasRoomParam.value) {
+        url += `&deck=${encodeURIComponent(state.selectedDeck)}`;
+      }
       state.phase = "connecting";
       socket = new WebSocket(url);
 
@@ -267,6 +290,7 @@ const app = createApp({
             }
             state.hostId = msg.hostId;
             state.revealed = msg.revealed;
+            state.deck = msg.deck ?? DEFAULT_DECK_KEY;
             state.users = msg.users;
             state.votes = msg.votes;
             break;
@@ -319,7 +343,8 @@ const app = createApp({
       actionLabel,
       actionDisabled,
       handleAction,
-      deck,
+      activeDeck,
+      cards,
       votedCount,
       sendVote,
       sendReveal,

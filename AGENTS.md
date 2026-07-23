@@ -88,6 +88,8 @@ These are the load-bearing invariants. Violating them is a bug, even if tests pa
 
 10. **Room discarded immediately when empty.** No grace period. See D9.4.
 
+11. **Deck is optional and fixed at room creation.** The backend never chooses a default. A non-blank `deck` query param from the room-creating connection is stored and broadcast; without one, `state` omits `deck`. Joiners cannot alter the room's value. There is no `setDeck` message.
+
 ## Validation rules & error vocabulary
 
 See the `validation-errors-reference` skill (loaded on demand) for the canonical regex list, full error-string set, trigger→string mappings, and the `1001`/`1011` close-codes table. The strings also live in `src/errors.ts` as the code-level source of truth.

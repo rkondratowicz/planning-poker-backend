@@ -37,6 +37,7 @@ export type StateMessage = {
   type: "state";
   hostId: string;
   revealed: boolean;
+  deck?: string;
   users: StateUser[];
   votes: null | Record<string, string>;
 };

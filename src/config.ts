@@ -7,6 +7,7 @@ export type Config = {
   maxRoomIdLength: number;
   maxNameLength: number;
   maxVoteLength: number;
+  maxDeckLength: number;
   shutdownGraceMs: number;
   maxRoomUsers: number;
   messageRateWindowMs: number;
@@ -23,6 +24,7 @@ const intBounds: Record<string, Bound> = {
   maxRoomIdLength: { min: 16, max: 1024 },
   maxNameLength: { min: 1, max: 256 },
   maxVoteLength: { min: 1, max: 1024 },
+  maxDeckLength: { min: 1, max: 256 },
   shutdownGraceMs: { min: 1000, max: 300_000 },
   maxRoomUsers: { min: 2, max: 10_000 },
   messageRateWindowMs: { min: 100, max: 60_000 },
@@ -70,6 +72,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     maxRoomIdLength: parseBoundedInt("maxRoomIdLength", env.MAX_ROOM_ID_LENGTH, 128),
     maxNameLength: parseBoundedInt("maxNameLength", env.MAX_NAME_LENGTH, 32),
     maxVoteLength: parseBoundedInt("maxVoteLength", env.MAX_VOTE_LENGTH, 64),
+    maxDeckLength: parseBoundedInt("maxDeckLength", env.MAX_DECK_LENGTH, 32),
     shutdownGraceMs: parseBoundedInt("shutdownGraceMs", env.SHUTDOWN_GRACE_MS, 20000),
     maxRoomUsers: parseBoundedInt("maxRoomUsers", env.MAX_ROOM_USERS, 50),
     messageRateWindowMs: parseBoundedInt("messageRateWindowMs", env.MESSAGE_RATE_WINDOW_MS, 1000),

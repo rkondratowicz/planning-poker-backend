@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateName, validateRoomId } from "../src/validation.js";
+import { validateDeck, validateName, validateRoomId } from "../src/validation.js";
 
 describe("validateRoomId", () => {
   const max = 128;
@@ -96,5 +96,29 @@ describe("validateName", () => {
   it("accepts unicode names", () => {
     expect(validateName("☕ drinker", max)).toBeNull();
     expect(validateName("名前", max)).toBeNull();
+  });
+});
+
+describe("validateDeck", () => {
+  const max = 32;
+
+  it("accepts a valid deck value", () => {
+    expect(validateDeck("fibonacci", max)).toBeNull();
+    expect(validateDeck("tshirt", max)).toBeNull();
+  });
+
+  it("accepts an empty/whitespace-only deck as absent", () => {
+    expect(validateDeck("", max)).toBeNull();
+    expect(validateDeck("   ", max)).toBeNull();
+    expect(validateDeck("\t\n", max)).toBeNull();
+  });
+
+  it("rejects a deck longer than max after trim", () => {
+    expect(validateDeck("a".repeat(max + 1), max)).toBe("deck is too long");
+  });
+
+  it("accepts a deck exactly at max after trim", () => {
+    expect(validateDeck("a".repeat(max), max)).toBeNull();
+    expect(validateDeck(`  ${"a".repeat(max)}  `, max)).toBeNull();
   });
 });

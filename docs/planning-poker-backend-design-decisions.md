@@ -260,3 +260,11 @@ All limits configurable via env (D5.1).
 - The exact `tsconfig.json` and `biome.json` syntax (we agreed on the option set).
 - The `package.json` contents (we agreed on the scripts list and the deps/set — `hono`, `@hono/node-server`, `ws`, `pino`, `zod`; devDeps — `tsx`, `vitest`, `@types/ws`, `typescript`, `@biomejs/biome`).
 - File-by-file skeleton of `src/` — the layout in D3.1 is the agreement; the implementation fills it in.
+
+## 15. Deck selection (post-v1 addition)
+
+- `deck` is an optional, frontend-controlled room identifier supplied as a query parameter by the room-creating connection. The backend has no default.
+- Blank values are treated as absent; non-blank values are trimmed and limited by `MAX_DECK_LENGTH` (default 32). The backend intentionally does not validate against a deck enum.
+- Joiners inherit the value fixed at room creation. A joining connection cannot alter it.
+- `state.deck` is included only when the room has a deck. Existing state payloads remain unchanged when it does not.
+- There is no `setDeck` message and no way to change a room's deck after creation.

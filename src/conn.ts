@@ -131,17 +131,18 @@ export function dispatchMessage(msg: ClientToServer, deps: DispatchDeps): void {
 export function openConnection(opts: {
   roomId: string;
   name: string;
+  deck?: string;
   ws: WsLike;
   config: Config;
   logger: Logger;
 }): Connection {
-  const { roomId, name, config, logger, ws } = opts;
+  const { roomId, name, deck, config, logger, ws } = opts;
   const userId = `user-${randomUUID()}`;
   const existing = getRoom(roomId);
   let room: Room;
   let roomLogger = roomLoggers.get(roomId);
   if (existing === undefined) {
-    room = createRoom(roomId, userId, name);
+    room = createRoom(roomId, userId, name, deck);
     roomLogger = logger.child({ roomId });
     roomLoggers.set(roomId, roomLogger);
     roomLogger.info({ userId }, "room created");

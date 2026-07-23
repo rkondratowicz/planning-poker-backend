@@ -35,6 +35,20 @@
             maxlength="32"
             :disabled="state.phase === 'connecting'"
           >
+          <div v-if="!hasRoomParam" class="deck-toggle" role="radiogroup" aria-label="Deck">
+            <span
+              role="radio"
+              :aria-checked="state.selectedDeck === 'fibonacci'"
+              :class="{ active: state.selectedDeck === 'fibonacci' }"
+              @click="state.selectedDeck = 'fibonacci'"
+            >Fibonacci</span>
+            <span
+              role="radio"
+              :aria-checked="state.selectedDeck === 'tshirt'"
+              :class="{ active: state.selectedDeck === 'tshirt' }"
+              @click="state.selectedDeck = 'tshirt'"
+            >T-shirt</span>
+          </div>
           <button
             type="submit"
             class="landing-btn"
@@ -65,7 +79,7 @@
               <p class="voting-count mono">{{ votedCount }} of {{ state.users.length }} have voted</p>
               <div class="hand">
                 <button
-                  v-for="v in deck"
+                  v-for="v in cards"
                   :key="v"
                   class="card hand-card"
                   :class="{ selected: state.myVote === v }"
@@ -91,7 +105,7 @@
               <div class="reveal-stats">
                 <div class="stat">
                   <span class="stat-value display">{{ revealStats.average }}</span>
-                  <span class="stat-label mono">Average</span>
+                  <span class="stat-label mono">{{ activeDeck.numeric ? "Average" : "Median" }}</span>
                 </div>
                 <div class="stat">
                   <span class="stat-value display">{{ revealStats.mode }}</span>

@@ -22,6 +22,7 @@ function makeRoom(hostId = "user-1", roomId = "room-a"): Room {
     roomId,
     hostId,
     revealed: false,
+    deck: "fibonacci",
     users: new Map(),
     nextSeq: 1,
   };
@@ -46,7 +47,7 @@ describe("createRoom / joinRoom / seq", () => {
   beforeEach(() => _testReset());
 
   it("creates a room with the first user as host and seq 1", () => {
-    const room = createRoom("room-a", "user-1", "Alice");
+    const room = createRoom("room-a", "user-1", "Alice", "fibonacci");
     expect(room.hostId).toBe("user-1");
     expect(room.revealed).toBe(false);
     expect(roomSize(room)).toBe(1);
@@ -61,7 +62,7 @@ describe("createRoom / joinRoom / seq", () => {
   });
 
   it("joinRoom assigns monotonic seqs at the back of the line", () => {
-    const room = createRoom("room-a", "user-1", "Alice");
+    const room = createRoom("room-a", "user-1", "Alice", "fibonacci");
     joinRoom(room, "user-2", "Bob");
     joinRoom(room, "user-3", "Carol");
     expect(room.users.get("user-1")?.seq).toBe(1);
@@ -71,11 +72,27 @@ describe("createRoom / joinRoom / seq", () => {
   });
 
   it("reconnects do not reuse an abandoned seq", () => {
-    const room = createRoom("room-a", "user-1", "Alice");
+    const room = createRoom("room-a", "user-1", "Alice", "fibonacci");
     joinRoom(room, "user-2", "Bob");
     removeUser(room, "user-2");
     joinRoom(room, "user-3", "Bob-again");
     expect(room.users.get("user-3")?.seq).toBe(3);
+  });
+
+  it("stores the passed deck on the room", () => {
+    const room = createRoom("room-a", "user-1", "Alice", "tshirt");
+    expect(room.deck).toBe("tshirt");
+  });
+
+  it("does not add a deck when none is passed", () => {
+    const room = createRoom("room-a", "user-1", "Alice");
+    expect(room).not.toHaveProperty("deck");
+  });
+
+  it("joinRoom does not alter the room's existing deck", () => {
+    const room = createRoom("room-a", "user-1", "Alice", "tshirt");
+    joinRoom(room, "user-2", "Bob");
+    expect(room.deck).toBe("tshirt");
   });
 });
 
@@ -149,6 +166,22 @@ describe("buildStateSnapshot", () => {
     expect(a).not.toBe(b);
     expect(a.users).not.toBe(b.users);
   });
+
+  it("includes the room's deck in the snapshot", () => {
+    const room = makeRoom("user-1");
+    room.deck = "tshirt";
+    addUser(room, "user-1", "Alice");
+    const snap = buildStateSnapshot(room);
+    expect(snap.deck).toBe("tshirt");
+  });
+
+  it("omits deck from the snapshot when the room has none", () => {
+    const room = makeRoom("user-1");
+    delete room.deck;
+    addUser(room, "user-1", "Alice");
+    const snap = buildStateSnapshot(room);
+    expect(snap).not.toHaveProperty("deck");
+  });
 });
 
 describe("promoteNextHost", () => {
@@ -220,14 +253,14 @@ describe("removeUser / removeUserFromRoom cleanup", () => {
   });
 
   it("discards the room immediately when the last user leaves", () => {
-    createRoom("room-a", "user-1", "Alice");
+    createRoom("room-a", "user-1", "Alice", "fibonacci");
     const result = removeUserFromRoom("room-a", "user-1");
     expect(result).toEqual({ removed: true, discarded: true, promoted: null });
     expect(getRoom("room-a")).toBeUndefined();
   });
 
   it("promotes the smallest-seq user when the host leaves", () => {
-    createRoom("room-a", "user-1", "Alice");
+    createRoom("room-a", "user-1", "Alice", "fibonacci");
     const room = getRoom("room-a");
     if (!room) throw new Error("room missing");
     joinRoom(room, "user-2", "Bob");

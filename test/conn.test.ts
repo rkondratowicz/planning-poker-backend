@@ -46,6 +46,7 @@ function makeConfig() {
     maxRoomIdLength: 128,
     maxNameLength: 32,
     maxVoteLength: 64,
+    maxDeckLength: 32,
     shutdownGraceMs: 20000,
     maxRoomUsers: 50,
     messageRateWindowMs: 1000,
@@ -127,6 +128,7 @@ describe("dispatchMessage", () => {
       roomId,
       hostId,
       revealed: false,
+      deck: "fibonacci",
       users: new Map(),
       nextSeq: 1,
     };
@@ -216,6 +218,23 @@ describe("openConnection", () => {
     expect(messages[0]).toEqual({ type: "welcome", userId: conn.userId });
     expect(messages[1]?.type).toBe("state");
     expect((messages[1] as StateMessage).users).toHaveLength(1);
+    expect(messages[1]).not.toHaveProperty("deck");
+  });
+
+  it("includes a provided deck in state broadcasts", () => {
+    _testReset();
+    _testResetConnections();
+    const ws = makeWs();
+    openConnection({
+      roomId: "room-deck",
+      name: "Alice",
+      deck: "tshirt",
+      ws,
+      config: makeConfig(),
+      logger: silentLogger,
+    });
+
+    expect(lastSent(ws).deck).toBe("tshirt");
   });
 
   it("second joiner becomes non-host and both receive state", () => {

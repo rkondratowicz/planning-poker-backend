@@ -13,6 +13,7 @@ export type Room = {
   roomId: string;
   hostId: string;
   revealed: boolean;
+  deck?: string;
   users: Map<string, User>;
   nextSeq: number;
 };
@@ -42,11 +43,12 @@ export function roomSize(room: Room): number {
   return room.users.size;
 }
 
-export function createRoom(roomId: string, userId: string, name: string): Room {
+export function createRoom(roomId: string, userId: string, name: string, deck?: string): Room {
   const room: Room = {
     roomId,
     hostId: userId,
     revealed: false,
+    ...(deck === undefined ? {} : { deck }),
     users: new Map(),
     nextSeq: 2,
   };
@@ -78,6 +80,7 @@ export function buildStateSnapshot(room: Room): StateMessage {
     type: "state",
     hostId: room.hostId,
     revealed: room.revealed,
+    ...(room.deck === undefined ? {} : { deck: room.deck }),
     users,
     votes,
   };

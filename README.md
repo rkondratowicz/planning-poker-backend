@@ -83,6 +83,7 @@ All settings have sensible defaults — the server runs correctly with zero conf
 | `MESSAGE_RATE_BURST` | `20` | Max inbound messages per window before rate-limit |
 | `MESSAGE_RATE_WINDOW_MS` | `1000` | Rate-limit window length |
 | `SHUTDOWN_GRACE_MS` | `20000` | Max wait for graceful shutdown before forced exit |
+| `MAX_DECK_LENGTH` | `32` | Max chars for the `deck` query param on the `/ws` upgrade |
 
 ## Frontend
 

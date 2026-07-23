@@ -229,6 +229,7 @@ describe("parseClientMessage", () => {
         type: "state",
         hostId: "user-abc",
         revealed: false,
+        deck: "fibonacci",
         users: [{ id: "user-abc", name: "Alice", hasVoted: true }],
         votes: null,
       };
@@ -236,6 +237,7 @@ describe("parseClientMessage", () => {
         type: "state",
         hostId: "user-abc",
         revealed: true,
+        deck: "fibonacci",
         users: [{ id: "user-abc", name: "Alice", hasVoted: true }],
         votes: { "user-abc": "5" },
       };

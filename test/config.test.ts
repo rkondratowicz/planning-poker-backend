@@ -13,6 +13,7 @@ describe("loadConfig", () => {
       maxRoomIdLength: 128,
       maxNameLength: 32,
       maxVoteLength: 64,
+      maxDeckLength: 32,
       shutdownGraceMs: 20000,
       maxRoomUsers: 50,
       messageRateWindowMs: 1000,
@@ -53,5 +54,18 @@ describe("loadConfig", () => {
     for (const level of ["fatal", "error", "warn", "info", "debug", "trace", "silent"]) {
       expect(loadConfig({ LOG_LEVEL: level }).logLevel).toBe(level);
     }
+  });
+
+  it("parses MAX_DECK_LENGTH from env", () => {
+    expect(loadConfig({ MAX_DECK_LENGTH: "64" }).maxDeckLength).toBe(64);
+  });
+
+  it("defaults MAX_DECK_LENGTH to 32 when unset", () => {
+    expect(loadConfig({}).maxDeckLength).toBe(32);
+  });
+
+  it("rejects MAX_DECK_LENGTH out of bounds", () => {
+    expect(() => loadConfig({ MAX_DECK_LENGTH: "0" })).toThrow(ConfigError);
+    expect(() => loadConfig({ MAX_DECK_LENGTH: "300" })).toThrow(ConfigError);
   });
 });

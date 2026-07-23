@@ -22,7 +22,7 @@ import {
   sendToClient,
 } from "./conn.js";
 import { errors } from "./errors.js";
-import { validateName, validateRoomId } from "./validation.js";
+import { validateDeck, validateName, validateRoomId } from "./validation.js";
 
 const repoRoot = process.cwd();
 const packageJson = JSON.parse(readFileSync(path.resolve(repoRoot, "package.json"), "utf8")) as {
@@ -69,6 +69,7 @@ export function createApp(deps: ServerDeps): Hono {
     }
     const roomId = c.req.query("room") ?? "";
     const rawName = c.req.query("name") ?? "";
+    const rawDeck = c.req.query("deck");
 
     const roomErr = validateRoomId(roomId, deps.config.maxRoomIdLength);
     if (roomErr !== null) {
@@ -77,6 +78,14 @@ export function createApp(deps: ServerDeps): Hono {
     const nameErr = validateName(rawName, deps.config.maxNameLength);
     if (nameErr !== null) {
       return c.json({ error: nameErr }, 400);
+    }
+    let deck: string | undefined;
+    if (rawDeck !== undefined) {
+      const deckErr = validateDeck(rawDeck, deps.config.maxDeckLength);
+      if (deckErr !== null) {
+        return c.json({ error: deckErr }, 400);
+      }
+      deck = rawDeck.trim() || undefined;
     }
     if (roomAtCapacity(roomId, deps.config.maxRoomUsers)) {
       return c.json({ error: "Room is full" }, 403);
@@ -95,6 +104,7 @@ export function createApp(deps: ServerDeps): Hono {
           const conn = openConnection({
             roomId,
             name,
+            ...(deck === undefined ? {} : { deck }),
             ws: { send: (data) => ws.send(data) },
             config: deps.config,
             logger: deps.logger,

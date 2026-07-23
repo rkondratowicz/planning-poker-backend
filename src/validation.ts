@@ -23,3 +23,11 @@ export function validateName(rawName: string, maxLength: number): string | null 
   }
   return null;
 }
+
+export function validateDeck(rawDeck: string, maxLength: number): string | null {
+  const deckValue = rawDeck.trim();
+  if (deckValue.length > maxLength) {
+    return "deck is too long";
+  }
+  return null;
+}

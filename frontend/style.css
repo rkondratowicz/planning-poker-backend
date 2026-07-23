@@ -292,6 +292,35 @@ header {
   opacity: 0.6;
 }
 
+.deck-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  width: fit-content;
+}
+
+.deck-toggle span {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.deck-toggle span:hover {
+  color: var(--ink-soft);
+}
+
+.deck-toggle span.active {
+  color: var(--ink);
+  background: var(--paper-card);
+}
+
 .landing-btn {
   width: 100%;
   padding: 10px 20px;
